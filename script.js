@@ -4,9 +4,14 @@ class NewsStream {
         this.queue = [];
         this.isAnimating = false;
         this.displayDuration = 5000; // How long each item stays visible
+        this.sharedLinks = new Map(); // Track shared link counts
+        this.topSharedContainer = document.querySelector('.shared-links');
         
         this.initWebSocket();
         this.processQueue();
+        
+        // Update top shared links every minute
+        setInterval(() => this.updateTopSharedLinks(), 60000);
     }
 
     initWebSocket() {
@@ -23,6 +28,23 @@ class NewsStream {
                     url: record.embed.external.uri || '#',
                     timestamp: new Date()
                 };
+                
+                // Track shared links
+                if (content.url !== '#') {
+                    if (!this.sharedLinks.has(content.url)) {
+                        this.sharedLinks.set(content.url, {
+                            title: content.title,
+                            count: 1,
+                            firstSeen: content.timestamp
+                        });
+                    } else {
+                        const data = this.sharedLinks.get(content.url);
+                        data.count++;
+                        this.sharedLinks.set(content.url, data);
+                    }
+                    this.updateTopSharedLinks();
+                }
+                
                 this.queue.push(content);
             }
         };
@@ -114,6 +136,28 @@ class NewsStream {
             }
             await new Promise(r => setTimeout(r, 100));
         }
+    }
+
+    updateTopSharedLinks() {
+        const sortedLinks = [...this.sharedLinks.entries()]
+            .sort((a, b) => b[1].count - a[1].count)
+            .slice(0, 10); // Show top 10 links
+
+        this.topSharedContainer.innerHTML = '';
+        
+        sortedLinks.forEach(([url, data]) => {
+            const linkElement = document.createElement('div');
+            linkElement.className = 'shared-link';
+            linkElement.innerHTML = `
+                <div class="shared-link-title">${data.title}</div>
+                <div class="shared-link-stats">
+                    Shared ${data.count} time${data.count !== 1 ? 's' : ''} • 
+                    ${new URL(url).hostname}
+                </div>
+            `;
+            linkElement.addEventListener('click', () => window.open(url, '_blank'));
+            this.topSharedContainer.appendChild(linkElement);
+        });
     }
 }
 
