@@ -70,6 +70,31 @@ class NewsStream {
         item.style.transform = 'translateX(100%)';
         await new Promise(r => setTimeout(r, 50)); // Small delay for animation
         item.style.transform = 'translateX(0)';
+
+        // Get the progress bar element
+        const progressBar = this.container.querySelector('::after');
+        
+        // Animate the progress bar
+        const startTime = performance.now();
+        const animate = () => {
+            const elapsed = performance.now() - startTime;
+            const progress = Math.min(elapsed / this.displayDuration, 1);
+            this.container.style.setProperty('--progress', progress);
+        };
+
+        // Start progress bar animation
+        this.container.style.setProperty('--progress', '0');
+        const animation = this.container.animate(
+            [
+                { transform: 'scaleX(0)' },
+                { transform: 'scaleX(1)' }
+            ],
+            {
+                duration: this.displayDuration,
+                easing: 'linear',
+                pseudoElement: '::after'
+            }
+        );
         
         // Wait for display duration
         await new Promise(r => setTimeout(r, this.displayDuration));
