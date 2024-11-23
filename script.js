@@ -138,26 +138,45 @@ class NewsStream {
         }
     }
 
-    updateTopSharedLinks() {
-        const sortedLinks = [...this.sharedLinks.entries()]
+    // Add this method to track the current top links
+    getTopLinks() {
+        return [...this.sharedLinks.entries()]
             .sort((a, b) => b[1].count - a[1].count)
-            .slice(0, 10); // Show top 10 links
+            .slice(0, 10)
+            .map(([url, data]) => ({
+                url,
+                title: data.title,
+                count: data.count,
+                hostname: new URL(url).hostname
+            }));
+    }
 
-        this.topSharedContainer.innerHTML = '';
+    // Modified updateTopSharedLinks method
+    updateTopSharedLinks() {
+        const newTopLinks = this.getTopLinks();
         
-        sortedLinks.forEach(([url, data]) => {
-            const linkElement = document.createElement('div');
-            linkElement.className = 'shared-link';
-            linkElement.innerHTML = `
-                <div class="shared-link-title">${data.title}</div>
-                <div class="shared-link-stats">
-                    Shared ${data.count} time${data.count !== 1 ? 's' : ''} • 
-                    ${new URL(url).hostname}
-                </div>
-            `;
-            linkElement.addEventListener('click', () => window.open(url, '_blank'));
-            this.topSharedContainer.appendChild(linkElement);
-        });
+        // Check if the current top links are different from the last update
+        const hasChanged = !this.lastTopLinks || JSON.stringify(newTopLinks) !== JSON.stringify(this.lastTopLinks);
+        
+        if (hasChanged) {
+            this.topSharedContainer.innerHTML = '';
+            
+            newTopLinks.forEach(({url, title, count, hostname}) => {
+                const linkElement = document.createElement('div');
+                linkElement.className = 'shared-link';
+                linkElement.innerHTML = `
+                    <div class="shared-link-title">${title}</div>
+                    <div class="shared-link-stats">
+                        Shared ${count} time${count !== 1 ? 's' : ''} • 
+                        ${hostname}
+                    </div>
+                `;
+                linkElement.addEventListener('click', () => window.open(url, '_blank'));
+                this.topSharedContainer.appendChild(linkElement);
+            });
+            
+            this.lastTopLinks = newTopLinks;
+        }
     }
 }
 
