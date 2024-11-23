@@ -169,26 +169,50 @@ class NewsStream {
         const hasChanged = !this.lastTopLinks || JSON.stringify(newTopLinks) !== JSON.stringify(this.lastTopLinks);
         
         if (hasChanged) {
+            // Create a map of existing elements by URL for reuse
+            const existingElements = new Map();
+            Array.from(this.topSharedContainer.children).forEach(element => {
+                const url = element.getAttribute('data-url');
+                if (url) existingElements.set(url, element);
+            });
+            
+            // Clear the container
             this.topSharedContainer.innerHTML = '';
+            
             newTopLinks.forEach(({url, title, description, thumb, count, hostname}) => {
-                const linkElement = document.createElement('div');
-                linkElement.className = 'shared-link';
-                linkElement.innerHTML = `
-                    ${thumb ? `
-                        <div class="shared-link-thumb">
-                            <img src="${thumb}" alt="" loading="lazy">
+                let linkElement;
+                
+                // Reuse existing element if available
+                if (existingElements.has(url)) {
+                    linkElement = existingElements.get(url);
+                    // Update only the dynamic content (count)
+                    const statsElement = linkElement.querySelector('.shared-link-stats');
+                    if (statsElement) {
+                        statsElement.textContent = `Shared ${count} time${count !== 1 ? 's' : ''} • ${hostname}`;
+                    }
+                } else {
+                    // Create new element if it doesn't exist
+                    linkElement = document.createElement('div');
+                    linkElement.className = 'shared-link';
+                    linkElement.setAttribute('data-url', url);
+                    linkElement.innerHTML = `
+                        ${thumb ? `
+                            <div class="shared-link-thumb">
+                                <img src="${thumb}" alt="" loading="lazy">
+                            </div>
+                        ` : ''}
+                        <div class="shared-link-content">
+                            <div class="shared-link-title">${title}</div>
+                            ${description ? `<div class="shared-link-description">${description}</div>` : ''}
+                            <div class="shared-link-stats">
+                                Shared ${count} time${count !== 1 ? 's' : ''} • 
+                                ${hostname}
+                            </div>
                         </div>
-                    ` : ''}
-                    <div class="shared-link-content">
-                        <div class="shared-link-title">${title}</div>
-                        ${description ? `<div class="shared-link-description">${description}</div>` : ''}
-                        <div class="shared-link-stats">
-                            Shared ${count} time${count !== 1 ? 's' : ''} • 
-                            ${hostname}
-                        </div>
-                    </div>
-                `;
-                linkElement.addEventListener('click', () => window.open(url, '_blank'));
+                    `;
+                    linkElement.addEventListener('click', () => window.open(url, '_blank'));
+                }
+                
                 this.topSharedContainer.appendChild(linkElement);
             });
             
