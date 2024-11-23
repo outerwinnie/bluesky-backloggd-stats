@@ -23,10 +23,15 @@ class NewsStream {
             const record = json.commit?.record;
             
             if (record && record.embed?.$type === "app.bsky.embed.external") {
+                const external = record.embed.external;
+                const thumbLink = external.thumb?.ref?.$link;
+                
                 const content = {
-                    title: record.embed.external.title || 'No Title',
-                    url: record.embed.external.uri || '#',
-                    timestamp: new Date()
+                    title: external.title || 'No Title',
+                    url: external.uri || '#',
+                    description: external.description || '',
+                    timestamp: new Date(),
+                    thumb: thumbLink ? this.getThumbUrl(thumbLink, json.did) : null
                 };
                 
                 // Track shared links
@@ -34,6 +39,9 @@ class NewsStream {
                     if (!this.sharedLinks.has(content.url)) {
                         this.sharedLinks.set(content.url, {
                             title: content.title,
+                            description: content.description,
+                            thumbLink: thumbLink,
+                            did: json.did,
                             count: 1,
                             firstSeen: content.timestamp
                         });
@@ -146,6 +154,8 @@ class NewsStream {
             .map(([url, data]) => ({
                 url,
                 title: data.title,
+                description: data.description,
+                thumb: data.thumbLink ? this.getThumbUrl(data.thumbLink, data.did) : null,
                 count: data.count,
                 hostname: new URL(url).hostname
             }));
@@ -160,15 +170,22 @@ class NewsStream {
         
         if (hasChanged) {
             this.topSharedContainer.innerHTML = '';
-            
-            newTopLinks.forEach(({url, title, count, hostname}) => {
+            newTopLinks.forEach(({url, title, description, thumb, count, hostname}) => {
                 const linkElement = document.createElement('div');
                 linkElement.className = 'shared-link';
                 linkElement.innerHTML = `
-                    <div class="shared-link-title">${title}</div>
-                    <div class="shared-link-stats">
-                        Shared ${count} time${count !== 1 ? 's' : ''} • 
-                        ${hostname}
+                    ${thumb ? `
+                        <div class="shared-link-thumb">
+                            <img src="${thumb}" alt="" loading="lazy">
+                        </div>
+                    ` : ''}
+                    <div class="shared-link-content">
+                        <div class="shared-link-title">${title}</div>
+                        ${description ? `<div class="shared-link-description">${description}</div>` : ''}
+                        <div class="shared-link-stats">
+                            Shared ${count} time${count !== 1 ? 's' : ''} • 
+                            ${hostname}
+                        </div>
                     </div>
                 `;
                 linkElement.addEventListener('click', () => window.open(url, '_blank'));
@@ -177,6 +194,12 @@ class NewsStream {
             
             this.lastTopLinks = newTopLinks;
         }
+    }
+
+    // Add this helper method to generate thumbnail URLs
+    getThumbUrl(thumbLink, did) {
+        if (!thumbLink || !did) return null;
+        return `https://cdn.bsky.app/img/feed_thumbnail/plain/${did}/${thumbLink}@jpeg`;
     }
 }
 

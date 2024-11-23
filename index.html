@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Breaking news and most shared stories">
+    <meta name="theme-color" content="#000000">
+    <title>Breaking News Feed</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600&display=swap">
     <style>
         body {
@@ -38,6 +43,8 @@
             border-radius: 8px;
             cursor: pointer;
             transition: background 0.3s;
+            display: flex;
+            gap: 15px;
         }
 
         .shared-link:hover {
@@ -142,6 +149,37 @@
 
         @keyframes flash {
             50% { opacity: 0.5; }
+        }
+
+        .shared-link-description {
+            color: #aaa;
+            font-size: 14px;
+            margin: 5px 0;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .shared-link-thumb {
+            flex-shrink: 0;
+            width: 120px;
+            height: 80px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .shared-link-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .shared-link-content {
+            flex: 1;
+            min-width: 0; /* Ensures text truncation works */
         }
     </style>
 </head>
