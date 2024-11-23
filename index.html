@@ -10,18 +10,26 @@
     <style>
         body {
             margin: 0;
-            overflow: hidden;
             background: #000;
             font-family: 'Inter', sans-serif;
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            overflow-y: auto;
+        }
+
+        .news-container {
+            height: 180px;
+            overflow: visible;
+            background: linear-gradient(90deg, 
+                rgba(255,0,0,0.1) 0%,
+                rgba(255,0,0,0.2) 100%);
+            position: relative;
         }
 
         .top-shared {
             flex: 1;
             padding: 40px;
-            overflow-y: auto;
         }
 
         .top-shared-title {
@@ -60,17 +68,6 @@
         .shared-link-stats {
             color: #888;
             font-size: 14px;
-        }
-
-        .news-container {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            height: 180px;
-            overflow: visible;
-            background: linear-gradient(90deg, 
-                rgba(255,0,0,0.1) 0%,
-                rgba(255,0,0,0.2) 100%);
         }
 
         .news-item {
@@ -135,7 +132,7 @@
             content: 'BREAKING';
             position: absolute;
             left: 60px;
-            top: -14px;
+            top: 20px;
             padding: 4px 12px;
             background: #ff3b3b;
             color: white;
@@ -202,11 +199,11 @@
     </style>
 </head>
 <body>
+    <div class="news-container"></div>
     <div class="top-shared">
         <div class="top-shared-title">Most Shared Stories</div>
         <div class="shared-links"></div>
     </div>
-    <div class="news-container"></div>
     <script src="script.js"></script>
 </body>
 </html>
