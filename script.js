@@ -34,7 +34,7 @@ class NewsStream {
                     thumb: thumbLink ? this.getThumbUrl(thumbLink, json.did) : null
                 };
                 
-                // Track shared links
+                // Track shared links with unique users
                 if (content.url !== '#') {
                     if (!this.sharedLinks.has(content.url)) {
                         this.sharedLinks.set(content.url, {
@@ -43,12 +43,17 @@ class NewsStream {
                             thumbLink: thumbLink,
                             did: json.did,
                             count: 1,
-                            firstSeen: content.timestamp
+                            firstSeen: content.timestamp,
+                            uniqueUsers: new Set([json.did]) // Track unique users
                         });
                     } else {
                         const data = this.sharedLinks.get(content.url);
-                        data.count++;
-                        this.sharedLinks.set(content.url, data);
+                        // Only increment count if this user hasn't shared before
+                        if (!data.uniqueUsers.has(json.did)) {
+                            data.count++;
+                            data.uniqueUsers.add(json.did);
+                            this.sharedLinks.set(content.url, data);
+                        }
                     }
                     this.updateTopSharedLinks();
                 }
