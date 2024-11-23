@@ -169,12 +169,30 @@
             height: 80px;
             border-radius: 4px;
             overflow: hidden;
+            background: #1a1a1a; /* Dark placeholder background */
+            position: relative;
+        }
+
+        .shared-link-thumb.no-image::before {
+            content: '📰';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            opacity: 0.3;
         }
 
         .shared-link-thumb img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .shared-link-thumb img.loaded {
+            opacity: 1;
         }
 
         .shared-link-content {

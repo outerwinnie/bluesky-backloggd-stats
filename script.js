@@ -195,12 +195,18 @@ class NewsStream {
                     linkElement = document.createElement('div');
                     linkElement.className = 'shared-link';
                     linkElement.setAttribute('data-url', url);
+                    
+                    // Create the HTML structure
+                    const thumbHtml = thumb ? `
+                        <div class="shared-link-thumb${!thumb ? ' no-image' : ''}">
+                            <img src="${thumb}" alt="" loading="lazy">
+                        </div>
+                    ` : `
+                        <div class="shared-link-thumb no-image"></div>
+                    `;
+                    
                     linkElement.innerHTML = `
-                        ${thumb ? `
-                            <div class="shared-link-thumb">
-                                <img src="${thumb}" alt="" loading="lazy">
-                            </div>
-                        ` : ''}
+                        ${thumbHtml}
                         <div class="shared-link-content">
                             <div class="shared-link-title">${title}</div>
                             ${description ? `<div class="shared-link-description">${description}</div>` : ''}
@@ -210,6 +216,19 @@ class NewsStream {
                             </div>
                         </div>
                     `;
+                    
+                    // Add image load handler
+                    if (thumb) {
+                        const img = linkElement.querySelector('img');
+                        img.addEventListener('load', () => {
+                            img.classList.add('loaded');
+                        });
+                        img.addEventListener('error', () => {
+                            img.parentElement.classList.add('no-image');
+                            img.remove();
+                        });
+                    }
+                    
                     linkElement.addEventListener('click', () => window.open(url, '_blank'));
                 }
                 
