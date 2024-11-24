@@ -369,9 +369,8 @@ class NewsStream {
         
         this.marqueeContainer.appendChild(newTrack);
         
-        // Update buttons
-        this.expandButton.textContent = `Add News Row (${this.marqueeRows} rows)`;
-        this.resetButton.style.display = 'block'; // Show reset button after first expansion
+        // Show reset button after first expansion, but keep expand button text simple
+        this.resetButton.style.display = 'block';
         
         // Initialize animation for the new track
         this.initializeTrackAnimation(newTrack, this.marqueeRows - 1);
@@ -392,8 +391,7 @@ class NewsStream {
         // Reset row count
         this.marqueeRows = 1;
         
-        // Update buttons
-        this.expandButton.textContent = 'Show More News';
+        // Hide reset button
         this.resetButton.style.display = 'none';
         
         // Reset marquee speed
