@@ -35,9 +35,10 @@
 
         .marquee-container {
             background: #111;
-            height: 180px;
+            height: var(--marquee-height, 180px);
             overflow: hidden;
             position: relative;
+            transition: height 0.3s ease;
         }
 
         .marquee-track {
@@ -302,6 +303,24 @@
             background: #0066cc;
         }
 
+        .expand-marquee {
+            display: block;
+            margin: 0 auto;
+            padding: 8px 16px;
+            background: rgba(255, 59, 59, 0.1);
+            border: none;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        .expand-marquee:hover {
+            background: rgba(255, 59, 59, 0.2);
+        }
+
         @media (max-width: 768px) {
             .news-container {
                 height: 160px;
@@ -321,7 +340,7 @@
             }
 
             .marquee-container {
-                height: 140px;
+                height: var(--marquee-height, 140px);
             }
 
             .marquee-item {
@@ -364,6 +383,10 @@
                 font-size: 12px;
                 padding: 6px 12px;
             }
+
+            .marquee-track + .marquee-track {
+                transform: translateY(140px); /* Base height for mobile */
+            }
         }
 
         @media (max-width: 480px) {
@@ -384,7 +407,7 @@
             }
 
             .marquee-container {
-                height: 140px;
+                height: var(--marquee-height, 140px);
             }
 
             .marquee-item {
@@ -429,6 +452,7 @@
             <!-- Items will be added here dynamically -->
         </div>
     </div>
+    <button class="expand-marquee">Show More News</button>
     <div class="top-shared">
         <div class="top-shared-title">
             Most Shared Stories

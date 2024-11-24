@@ -22,16 +22,15 @@ class NewsStream {
         // Update top shared links every minute
         setInterval(() => this.updateTopSharedLinks(), 60000);
         
-        this.animateMarquee();
+        this.marqueeRows = 1;
+        this.expandButton = document.querySelector('.expand-marquee');
+        this.expandButton.addEventListener('click', () => this.expandMarquee());
+        this.marqueeContainer = document.querySelector('.marquee-container');
         
-        // Add a one-time timeout to start showing minutes after 60 seconds
-        setTimeout(() => {
-            this.updateTimeIndicator();
-            setInterval(() => this.updateTimeIndicator(), 60000); // Update every minute
-        }, 60000);
-        
-        this.updateMarqueeSpeed();
-        window.addEventListener('resize', () => this.updateMarqueeSpeed());
+        // Initialize animation for the first track
+        const firstTrack = this.marqueeTrack;
+        firstTrack.dataset.row = 0;
+        this.initializeTrackAnimation(firstTrack, 0);
     }
 
     initWebSocket() {
@@ -55,10 +54,18 @@ class NewsStream {
                         thumb: thumbLink ? this.getThumbUrl(thumbLink, json.did) : null
                     };
                     
-                    // Add to marquee if there's a thumbnail and we're under the limit
-                    if (content.thumb && this.marqueeTrack.children.length < this.maxMarqueeItems) {
-                        const marqueeItem = this.createMarqueeItem(content);
-                        this.marqueeTrack.appendChild(marqueeItem);
+                    // Add to marquee if there's a thumbnail
+                    if (content.thumb) {
+                        // Find the track with the least items
+                        const tracks = Array.from(this.marqueeContainer.querySelectorAll('.marquee-track'));
+                        const targetTrack = tracks.reduce((prev, current) => 
+                            prev.children.length <= current.children.length ? prev : current
+                        );
+                        
+                        if (targetTrack && targetTrack.children.length < this.maxMarqueeItems) {
+                            const marqueeItem = this.createMarqueeItem(content, targetTrack.dataset.row);
+                            targetTrack.appendChild(marqueeItem);
+                        }
                     }
                     
                     // Track shared links with unique users
@@ -289,11 +296,12 @@ class NewsStream {
         return `https://cdn.bsky.app/img/feed_thumbnail/plain/${did}/${thumbLink}@jpeg`;
     }
 
-    createMarqueeItem(content) {
+    createMarqueeItem(content, rowIndex) {
         const item = document.createElement('a');
         item.className = 'marquee-item';
         item.href = content.url;
         item.target = '_blank';
+        item.dataset.row = rowIndex;
         
         const thumb = document.createElement('div');
         thumb.className = 'marquee-thumb loading';
@@ -321,27 +329,53 @@ class NewsStream {
         return item;
     }
 
-    animateMarquee() {
+    initializeTrackAnimation(track, rowIndex) {
         let position = 0;
+        const trackHeight = window.innerWidth <= 768 ? 140 : 180;
+        const verticalOffset = trackHeight * rowIndex;
         
         const animate = () => {
             position -= this.marqueeSpeed;
             
             // Reset position when first item goes completely off-screen
-            if (this.marqueeTrack.children.length > 0) {
-                const firstItem = this.marqueeTrack.children[0];
+            if (track.children.length > 0) {
+                const firstItem = track.children[0];
                 if (-position > firstItem.offsetWidth + 20) { // 20 is the gap
                     position += firstItem.offsetWidth + 20;
-                    // Remove the first item instead of moving it
-                    this.marqueeTrack.removeChild(firstItem);
+                    track.removeChild(firstItem);
                 }
             }
             
-            this.marqueeTrack.style.transform = `translateX(${position}px)`;
+            // Combine horizontal movement with vertical position
+            track.style.transform = `translate(${position}px, ${verticalOffset}px)`;
             requestAnimationFrame(animate);
         };
         
         requestAnimationFrame(animate);
+    }
+
+    expandMarquee() {
+        this.marqueeRows++;
+        const baseHeight = window.innerWidth <= 768 ? 140 : 180;
+        const newHeight = baseHeight * this.marqueeRows;
+        this.marqueeContainer.style.setProperty('--marquee-height', `${newHeight}px`);
+        
+        // Create a new marquee track for the new row
+        const newTrack = document.createElement('div');
+        newTrack.className = 'marquee-track';
+        newTrack.dataset.row = this.marqueeRows - 1;
+        
+        // Set the initial vertical position
+        const trackHeight = window.innerWidth <= 768 ? 140 : 180;
+        newTrack.style.transform = `translateY(${trackHeight * (this.marqueeRows - 1)}px)`;
+        
+        this.marqueeContainer.appendChild(newTrack);
+        
+        // Update button text
+        this.expandButton.textContent = `Add News Row (${this.marqueeRows} rows)`;
+        
+        // Initialize animation for the new track
+        this.initializeTrackAnimation(newTrack, this.marqueeRows - 1);
     }
 
     updateTimeIndicator() {
@@ -361,8 +395,9 @@ class NewsStream {
     }
 
     updateMarqueeSpeed() {
-        // Slower speed on mobile
-        this.marqueeSpeed = window.innerWidth <= 768 ? 0.5 : 1;
+        // Slower speed on mobile, adjusted for number of rows
+        const baseSpeed = window.innerWidth <= 768 ? 0.5 : 1;
+        this.marqueeSpeed = baseSpeed / Math.sqrt(this.marqueeRows); // Gradually slow down as rows increase
     }
 }
 
