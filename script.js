@@ -7,11 +7,18 @@ class NewsStream {
         this.sharedLinks = new Map(); // Track shared link counts
         this.topSharedContainer = document.querySelector('.shared-links');
         
+        this.marqueeTrack = document.querySelector('.marquee-track');
+        this.marqueeItems = [];
+        this.marqueeSpeed = 1; // pixels per frame
+        this.maxMarqueeItems = 20; // Maximum number of items to keep in marquee
+        
         this.initWebSocket();
         this.processQueue();
         
         // Update top shared links every minute
         setInterval(() => this.updateTopSharedLinks(), 60000);
+        
+        this.animateMarquee();
     }
 
     initWebSocket() {
@@ -33,6 +40,12 @@ class NewsStream {
                     timestamp: new Date(),
                     thumb: thumbLink ? this.getThumbUrl(thumbLink, json.did) : null
                 };
+                
+                // Add to marquee if there's a thumbnail and we're under the limit
+                if (content.thumb && this.marqueeTrack.children.length < this.maxMarqueeItems) {
+                    const marqueeItem = this.createMarqueeItem(content);
+                    this.marqueeTrack.appendChild(marqueeItem);
+                }
                 
                 // Track shared links with unique users
                 if (content.url !== '#') {
@@ -248,6 +261,53 @@ class NewsStream {
     getThumbUrl(thumbLink, did) {
         if (!thumbLink || !did) return null;
         return `https://cdn.bsky.app/img/feed_thumbnail/plain/${did}/${thumbLink}@jpeg`;
+    }
+
+    createMarqueeItem(content) {
+        const item = document.createElement('div');
+        item.className = 'marquee-item';
+        
+        const thumb = document.createElement('div');
+        thumb.className = 'marquee-thumb';
+        
+        const img = document.createElement('img');
+        img.src = content.thumb;
+        img.alt = content.title;
+        
+        const title = document.createElement('div');
+        title.className = 'marquee-title';
+        title.textContent = content.title;
+        
+        thumb.appendChild(img);
+        item.appendChild(thumb);
+        item.appendChild(title);
+        
+        item.addEventListener('click', () => window.open(content.url, '_blank'));
+        
+        return item;
+    }
+
+    animateMarquee() {
+        let position = 0;
+        
+        const animate = () => {
+            position -= this.marqueeSpeed;
+            
+            // Reset position when first item goes completely off-screen
+            if (this.marqueeTrack.children.length > 0) {
+                const firstItem = this.marqueeTrack.children[0];
+                if (-position > firstItem.offsetWidth + 20) { // 20 is the gap
+                    position += firstItem.offsetWidth + 20;
+                    // Remove the first item instead of moving it
+                    this.marqueeTrack.removeChild(firstItem);
+                }
+            }
+            
+            this.marqueeTrack.style.transform = `translateX(${position}px)`;
+            requestAnimationFrame(animate);
+        };
+        
+        requestAnimationFrame(animate);
     }
 }
 
