@@ -29,6 +29,9 @@ class NewsStream {
             this.updateTimeIndicator();
             setInterval(() => this.updateTimeIndicator(), 60000); // Update every minute
         }, 60000);
+        
+        this.updateMarqueeSpeed();
+        window.addEventListener('resize', () => this.updateMarqueeSpeed());
     }
 
     initWebSocket() {
@@ -115,7 +118,11 @@ class NewsStream {
         
         const headline = document.createElement('div');
         headline.className = 'news-headline';
-        headline.textContent = content.title;
+        // Truncate title if it's too long
+        const maxLength = window.innerWidth <= 480 ? 60 : 100;
+        headline.textContent = content.title.length > maxLength ? 
+            content.title.substring(0, maxLength) + '...' : 
+            content.title;
         
         const source = document.createElement('div');
         source.className = 'news-source';
@@ -351,6 +358,11 @@ class NewsStream {
         if (this.timeIndicator) {
             this.timeIndicator.innerHTML = timeText;
         }
+    }
+
+    updateMarqueeSpeed() {
+        // Slower speed on mobile
+        this.marqueeSpeed = window.innerWidth <= 768 ? 0.5 : 1;
     }
 }
 

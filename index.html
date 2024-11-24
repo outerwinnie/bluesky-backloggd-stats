@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="Breaking news and most shared stories on Bluesky">
     <meta property="og:title" content="Bluesky News Feed" />
     <meta property="og:description" content="Breaking news and most shared stories on Bluesky" />
@@ -300,6 +300,124 @@
 
         .follow-button:hover {
             background: #0066cc;
+        }
+
+        @media (max-width: 768px) {
+            .news-container {
+                height: 160px;
+            }
+
+            .news-headline {
+                font-size: 36px;
+            }
+
+            .news-item {
+                padding: 0 20px;
+                padding-top: 40px;
+            }
+
+            .news-container::before {
+                left: 20px;
+            }
+
+            .marquee-container {
+                height: 140px;
+            }
+
+            .marquee-item {
+                width: 140px;
+            }
+
+            .marquee-thumb {
+                width: 140px;
+                height: 80px;
+            }
+
+            .top-shared {
+                padding: 20px;
+            }
+
+            .top-shared-title {
+                font-size: 24px;
+            }
+
+            .shared-link {
+                padding: 10px;
+            }
+
+            .shared-link-thumb {
+                width: 80px;
+                height: 60px;
+            }
+
+            .shared-link-title {
+                font-size: 16px;
+            }
+
+            .shared-link-description {
+                font-size: 13px;
+            }
+
+            .follow-button {
+                top: 18px;
+                right: 20px;
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .news-container {
+                height: 140px;
+            }
+
+            .news-headline {
+                font-size: 28px;
+            }
+
+            .news-time {
+                font-size: 12px;
+            }
+
+            .news-source {
+                font-size: 14px;
+            }
+
+            .marquee-container {
+                height: 140px;
+            }
+
+            .marquee-item {
+                width: 120px;
+            }
+
+            .marquee-thumb {
+                width: 120px;
+                height: 70px;
+            }
+
+            .marquee-title {
+                font-size: 12px;
+            }
+
+            .shared-link {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .shared-link-thumb {
+                width: 100%;
+                height: 160px;
+            }
+
+            .shared-link-title {
+                font-size: 15px;
+            }
+
+            .time-indicator {
+                display: block;
+                margin-top: 5px;
+            }
         }
     </style>
 </head>
