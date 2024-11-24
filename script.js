@@ -287,11 +287,19 @@ class NewsStream {
         item.className = 'marquee-item';
         
         const thumb = document.createElement('div');
-        thumb.className = 'marquee-thumb';
+        thumb.className = 'marquee-thumb loading'; // Change to 'loading' instead of 'no-image'
         
         const img = document.createElement('img');
         img.src = content.thumb;
         img.alt = content.title;
+        img.addEventListener('load', () => {
+            img.classList.add('loaded');
+            thumb.classList.remove('loading');
+        });
+        img.addEventListener('error', () => {
+            thumb.classList.add('loading');
+            img.remove();
+        });
         
         const title = document.createElement('div');
         title.className = 'marquee-title';

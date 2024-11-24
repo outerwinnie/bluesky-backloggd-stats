@@ -60,12 +60,24 @@
             border-radius: 4px;
             overflow: hidden;
             margin-bottom: 8px;
+            position: relative;
+            background: #1a1a1a; /* Dark background as placeholder */
+        }
+
+        .marquee-thumb.loading {
+            background: #1a1a1a;
         }
 
         .marquee-thumb img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .marquee-thumb img.loaded {
+            opacity: 1;
         }
 
         .marquee-title {
