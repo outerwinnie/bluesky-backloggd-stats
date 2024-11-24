@@ -100,8 +100,10 @@ class NewsStream {
     }
 
     createNewsItem(content) {
-        const item = document.createElement('div');
+        const item = document.createElement('a');
         item.className = 'news-item';
+        item.href = content.url;
+        item.target = '_blank';
         
         const time = document.createElement('div');
         time.className = 'news-time';
@@ -122,8 +124,6 @@ class NewsStream {
         item.appendChild(time);
         item.appendChild(headline);
         item.appendChild(source);
-        
-        item.addEventListener('click', () => window.open(content.url, '_blank'));
         
         return item;
     }
@@ -229,8 +229,10 @@ class NewsStream {
                     }
                 } else {
                     // Create new element if it doesn't exist
-                    linkElement = document.createElement('div');
+                    linkElement = document.createElement('a');
                     linkElement.className = 'shared-link';
+                    linkElement.href = url;
+                    linkElement.target = '_blank';
                     linkElement.setAttribute('data-url', url);
                     
                     // Create the HTML structure
@@ -265,8 +267,6 @@ class NewsStream {
                             img.remove();
                         });
                     }
-                    
-                    linkElement.addEventListener('click', () => window.open(url, '_blank'));
                 }
                 
                 this.topSharedContainer.appendChild(linkElement);
@@ -283,11 +283,13 @@ class NewsStream {
     }
 
     createMarqueeItem(content) {
-        const item = document.createElement('div');
+        const item = document.createElement('a');
         item.className = 'marquee-item';
+        item.href = content.url;
+        item.target = '_blank';
         
         const thumb = document.createElement('div');
-        thumb.className = 'marquee-thumb loading'; // Change to 'loading' instead of 'no-image'
+        thumb.className = 'marquee-thumb loading';
         
         const img = document.createElement('img');
         img.src = content.thumb;
@@ -308,8 +310,6 @@ class NewsStream {
         thumb.appendChild(img);
         item.appendChild(thumb);
         item.appendChild(title);
-        
-        item.addEventListener('click', () => window.open(content.url, '_blank'));
         
         return item;
     }
