@@ -24,7 +24,9 @@ class NewsStream {
         
         this.marqueeRows = 1;
         this.expandButton = document.querySelector('.expand-marquee');
+        this.resetButton = document.querySelector('.reset-marquee');
         this.expandButton.addEventListener('click', () => this.expandMarquee());
+        this.resetButton.addEventListener('click', () => this.resetMarquee());
         this.marqueeContainer = document.querySelector('.marquee-container');
         
         // Initialize animation for the first track
@@ -365,17 +367,37 @@ class NewsStream {
         newTrack.className = 'marquee-track';
         newTrack.dataset.row = this.marqueeRows - 1;
         
-        // Set the initial vertical position
-        const trackHeight = window.innerWidth <= 768 ? 140 : 180;
-        newTrack.style.transform = `translateY(${trackHeight * (this.marqueeRows - 1)}px)`;
-        
         this.marqueeContainer.appendChild(newTrack);
         
-        // Update button text
+        // Update buttons
         this.expandButton.textContent = `Add News Row (${this.marqueeRows} rows)`;
+        this.resetButton.style.display = 'block'; // Show reset button after first expansion
         
         // Initialize animation for the new track
         this.initializeTrackAnimation(newTrack, this.marqueeRows - 1);
+        
+        // Update marquee speed
+        this.updateMarqueeSpeed();
+    }
+
+    resetMarquee() {
+        // Remove all tracks except the first one
+        const tracks = Array.from(this.marqueeContainer.querySelectorAll('.marquee-track'));
+        tracks.slice(1).forEach(track => track.remove());
+        
+        // Reset height
+        const baseHeight = window.innerWidth <= 768 ? 140 : 180;
+        this.marqueeContainer.style.setProperty('--marquee-height', `${baseHeight}px`);
+        
+        // Reset row count
+        this.marqueeRows = 1;
+        
+        // Update buttons
+        this.expandButton.textContent = 'Show More News';
+        this.resetButton.style.display = 'none';
+        
+        // Reset marquee speed
+        this.updateMarqueeSpeed();
     }
 
     updateTimeIndicator() {
