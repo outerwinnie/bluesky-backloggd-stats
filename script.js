@@ -32,62 +32,71 @@ class NewsStream {
     }
 
     initWebSocket() {
-        const url = "wss://jetstream2.us-east.bsky.network/subscribe?wantedCollections=app.bsky.feed.post";
-        const ws = new WebSocket(url);
+        const connectWebSocket = () => {
+            const url = "wss://jetstream2.us-east.bsky.network/subscribe?wantedCollections=app.bsky.feed.post";
+            const ws = new WebSocket(url);
 
-        ws.onmessage = (event) => {
-            const json = JSON.parse(event.data);
-            const record = json.commit?.record;
-            
-            if (record && record.embed?.$type === "app.bsky.embed.external") {
-                const external = record.embed.external;
-                const thumbLink = external.thumb?.ref?.$link;
+            ws.onmessage = (event) => {
+                const json = JSON.parse(event.data);
+                const record = json.commit?.record;
                 
-                const content = {
-                    title: external.title || 'No Title',
-                    url: external.uri || '#',
-                    description: external.description || '',
-                    timestamp: new Date(),
-                    thumb: thumbLink ? this.getThumbUrl(thumbLink, json.did) : null
-                };
-                
-                // Add to marquee if there's a thumbnail and we're under the limit
-                if (content.thumb && this.marqueeTrack.children.length < this.maxMarqueeItems) {
-                    const marqueeItem = this.createMarqueeItem(content);
-                    this.marqueeTrack.appendChild(marqueeItem);
-                }
-                
-                // Track shared links with unique users
-                if (content.url !== '#') {
-                    if (!this.sharedLinks.has(content.url)) {
-                        this.sharedLinks.set(content.url, {
-                            title: content.title,
-                            description: content.description,
-                            thumbLink: thumbLink,
-                            did: json.did,
-                            count: 1,
-                            firstSeen: content.timestamp,
-                            uniqueUsers: new Set([json.did]) // Track unique users
-                        });
-                    } else {
-                        const data = this.sharedLinks.get(content.url);
-                        // Only increment count if this user hasn't shared before
-                        if (!data.uniqueUsers.has(json.did)) {
-                            data.count++;
-                            data.uniqueUsers.add(json.did);
-                            this.sharedLinks.set(content.url, data);
-                        }
+                if (record && record.embed?.$type === "app.bsky.embed.external") {
+                    const external = record.embed.external;
+                    const thumbLink = external.thumb?.ref?.$link;
+                    
+                    const content = {
+                        title: external.title || 'No Title',
+                        url: external.uri || '#',
+                        description: external.description || '',
+                        timestamp: new Date(),
+                        thumb: thumbLink ? this.getThumbUrl(thumbLink, json.did) : null
+                    };
+                    
+                    // Add to marquee if there's a thumbnail and we're under the limit
+                    if (content.thumb && this.marqueeTrack.children.length < this.maxMarqueeItems) {
+                        const marqueeItem = this.createMarqueeItem(content);
+                        this.marqueeTrack.appendChild(marqueeItem);
                     }
-                    this.updateTopSharedLinks();
+                    
+                    // Track shared links with unique users
+                    if (content.url !== '#') {
+                        if (!this.sharedLinks.has(content.url)) {
+                            this.sharedLinks.set(content.url, {
+                                title: content.title,
+                                description: content.description,
+                                thumbLink: thumbLink,
+                                did: json.did,
+                                count: 1,
+                                firstSeen: content.timestamp,
+                                uniqueUsers: new Set([json.did]) // Track unique users
+                            });
+                        } else {
+                            const data = this.sharedLinks.get(content.url);
+                            // Only increment count if this user hasn't shared before
+                            if (!data.uniqueUsers.has(json.did)) {
+                                data.count++;
+                                data.uniqueUsers.add(json.did);
+                                this.sharedLinks.set(content.url, data);
+                            }
+                        }
+                        this.updateTopSharedLinks();
+                    }
+                    
+                    this.queue.push(content);
                 }
-                
-                this.queue.push(content);
-            }
+            };
+
+            ws.onopen = () => console.log("Connected to Bluesky WebSocket");
+            ws.onerror = (error) => console.error("WebSocket error:", error);
+            
+            ws.onclose = () => {
+                console.log("WebSocket connection closed, attempting to reconnect...");
+                // Wait 5 seconds before attempting to reconnect
+                setTimeout(connectWebSocket, 5000);
+            };
         };
 
-        ws.onopen = () => console.log("Connected to Bluesky WebSocket");
-        ws.onerror = (error) => console.error("WebSocket error:", error);
-        ws.onclose = () => console.log("WebSocket connection closed");
+        connectWebSocket();
     }
 
     createNewsItem(content) {
