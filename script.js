@@ -37,6 +37,22 @@ class NewsStream {
         const firstTrack = this.marqueeTrack;
         firstTrack.dataset.row = 0;
         this.initializeTrackAnimation(firstTrack, 0);
+        
+        // Load excludeTenor preference from localStorage
+        this.excludeTenor = localStorage.getItem('excludeTenor') === 'true';
+        this.excludeTenorCheckbox = document.getElementById('excludeTenor');
+        this.excludeTenorCheckbox.checked = this.excludeTenor; // Set initial checkbox state
+        
+        this.excludeTenorCheckbox.addEventListener('change', (e) => {
+            this.excludeTenor = e.target.checked;
+            // Save preference to localStorage
+            localStorage.setItem('excludeTenor', this.excludeTenor);
+            this.updateTopSharedLinks();
+            // Clear current queue of any Tenor GIFs
+            if (this.excludeTenor) {
+                this.queue = this.queue.filter(item => !item.url.includes('tenor.com'));
+            }
+        });
     }
 
     initWebSocket() {
@@ -59,6 +75,11 @@ class NewsStream {
                         timestamp: new Date(),
                         thumb: thumbLink ? this.getThumbUrl(thumbLink, json.did) : null
                     };
+                    
+                    // Skip Tenor GIFs if excludeTenor is enabled
+                    if (this.excludeTenor && content.url.includes('tenor.com')) {
+                        return;
+                    }
                     
                     // Add to marquee if there's a thumbnail
                     if (content.thumb) {
@@ -206,6 +227,12 @@ class NewsStream {
     // Add this method to track the current top links
     getTopLinks() {
         return [...this.sharedLinks.entries()]
+            .filter(([url, data]) => {
+                if (this.excludeTenor && url.includes('tenor.com')) {
+                    return false;
+                }
+                return true;
+            })
             .sort((a, b) => b[1].count - a[1].count)
             .slice(0, 10)
             .map(([url, data]) => ({

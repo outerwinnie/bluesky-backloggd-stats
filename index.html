@@ -103,6 +103,8 @@
             font-family: 'Bebas Neue', sans-serif;
             font-size: 32px;
             margin-bottom: 20px;
+            position: relative;
+            padding-right: 150px;
         }
 
         .shared-links {
@@ -331,6 +333,27 @@
             padding: 0;
         }
 
+        .tenor-filter {
+            float: right;
+            font-size: 14px;
+            color: #888;
+            font-family: 'Inter', sans-serif;
+            font-weight: normal;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .tenor-filter input {
+            margin: 0;
+            cursor: pointer;
+        }
+
         @media (max-width: 768px) {
             .news-container {
                 height: 160px;
@@ -397,6 +420,10 @@
             .marquee-track + .marquee-track {
                 transform: translateY(140px); /* Base height for mobile */
             }
+
+            .tenor-filter {
+                font-size: 12px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -452,6 +479,60 @@
                 margin-top: 5px;
             }
         }
+
+        .time-indicator {
+            display: inline-block;
+        }
+
+        /* Add these new styles */
+        .title-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .title-text {
+            margin: 0;
+            padding: 0;
+            white-space: nowrap;
+        }
+
+        .time-indicator {
+            font-size: 16px;
+            color: #888;
+            white-space: nowrap;
+        }
+
+        .tenor-filter {
+            margin-left: auto;
+            font-size: 14px;
+            color: #888;
+            font-family: 'Inter', sans-serif;
+            font-weight: normal;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .title-row {
+                flex-wrap: wrap;
+                gap: 0;
+            }
+
+            .time-indicator {
+                order: 3;
+                width: 100%;
+                margin-top: 0;
+            }
+
+            .tenor-filter {
+                font-size: 12px;
+                top: 14px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -468,10 +549,16 @@
     </div>
     <div class="top-shared">
         <div class="top-shared-title">
-            Most Shared Stories
-            <span class="time-indicator" style="font-size: 16px; color: #888; font-family: 'Inter', sans-serif; font-weight: normal;">
-                (gathering first stories... please wait)<span class="loading-spinner"></span>
-            </span>
+            <div class="title-row">
+                <div class="title-text">Most Shared Stories</div>
+                <span class="time-indicator" style="font-size: 16px; color: #888; font-family: 'Inter', sans-serif; font-weight: normal;">
+                    (gathering first stories... please wait)<span class="loading-spinner"></span>
+                </span>
+                <label class="tenor-filter">
+                    <input type="checkbox" id="excludeTenor"> 
+                    Exclude Tenor GIFs
+                </label>
+            </div>
         </div>
         <div class="shared-links"></div>
     </div>
