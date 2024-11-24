@@ -12,6 +12,10 @@ class NewsStream {
         this.marqueeSpeed = 1; // pixels per frame
         this.maxMarqueeItems = 20; // Maximum number of items to keep in marquee
         
+        this.startTime = new Date();
+        this.timeIndicator = document.querySelector('.time-indicator');
+        this.timeIndicator.innerHTML = '(gathering first stories... please wait)<span class="loading-spinner"></span>';
+        
         this.initWebSocket();
         this.processQueue();
         
@@ -19,6 +23,12 @@ class NewsStream {
         setInterval(() => this.updateTopSharedLinks(), 60000);
         
         this.animateMarquee();
+        
+        // Add a one-time timeout to start showing minutes after 60 seconds
+        setTimeout(() => {
+            this.updateTimeIndicator();
+            setInterval(() => this.updateTimeIndicator(), 60000); // Update every minute
+        }, 60000);
     }
 
     initWebSocket() {
@@ -308,6 +318,22 @@ class NewsStream {
         };
         
         requestAnimationFrame(animate);
+    }
+
+    updateTimeIndicator() {
+        const minutesSinceStart = Math.floor((new Date() - this.startTime) / 60000);
+        let timeText;
+        
+        if (minutesSinceStart < 1) {
+            timeText = '(gathering first stories... please wait)<span class="loading-spinner"></span>';
+        } else {
+            // Remove spinner when switching to time display
+            timeText = `(last ${minutesSinceStart} minute${minutesSinceStart > 1 ? 's' : ''})`;
+        }
+        
+        if (this.timeIndicator) {
+            this.timeIndicator.innerHTML = timeText;
+        }
     }
 }
 
