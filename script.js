@@ -22,6 +22,10 @@ class NewsStream {
         // Update top shared links every minute
         setInterval(() => this.updateTopSharedLinks(), 60000);
         
+        // Add this new interval for time indicator updates
+        setInterval(() => this.updateTimeIndicator(), 10000); // Update every 10 seconds
+        this.updateTimeIndicator(); // Initial update
+        
         this.marqueeRows = 1;
         this.expandButton = document.querySelector('.expand-marquee');
         this.resetButton = document.querySelector('.reset-marquee');
