@@ -1,0 +1,20 @@
+# Git files
+.git
+.gitignore
+
+# Documentation
+README.md
+
+# Development files
+.DS_Store
+Thumbs.db
+
+# Node modules (if any)
+node_modules
+npm-debug.log
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
