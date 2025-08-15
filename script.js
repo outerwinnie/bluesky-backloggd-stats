@@ -3,7 +3,7 @@ class NewsStream {
         this.container = document.querySelector('.news-container');
         this.queue = [];
         this.isAnimating = false;
-        this.displayDuration = 5000; // How long each item stays visible
+        this.displayDuration = 60000; // How long each item stays visible
         this.gameReviews = new Map(); // Track game review counts
         this.topSharedContainer = document.querySelector('.shared-links');
         
