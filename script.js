@@ -4,7 +4,7 @@ class NewsStream {
         this.queue = [];
         this.isAnimating = false;
         this.displayDuration = 5000; // How long each item stays visible
-        this.sharedLinks = new Map(); // Track shared link counts
+        this.gameReviews = new Map(); // Track game review counts
         this.topSharedContainer = document.querySelector('.shared-links');
         
         this.marqueeTrack = document.querySelector('.marquee-track');
@@ -38,21 +38,6 @@ class NewsStream {
         firstTrack.dataset.row = 0;
         this.initializeTrackAnimation(firstTrack, 0);
         
-        // Load excludeTenor preference from localStorage
-        this.excludeTenor = localStorage.getItem('excludeTenor') === 'true';
-        this.excludeTenorCheckbox = document.getElementById('excludeTenor');
-        this.excludeTenorCheckbox.checked = this.excludeTenor; // Set initial checkbox state
-        
-        this.excludeTenorCheckbox.addEventListener('change', (e) => {
-            this.excludeTenor = e.target.checked;
-            // Save preference to localStorage
-            localStorage.setItem('excludeTenor', this.excludeTenor);
-            this.updateTopSharedLinks();
-            // Clear current queue of any Tenor GIFs
-            if (this.excludeTenor) {
-                this.queue = this.queue.filter(item => !item.url.includes('tenor.com'));
-            }
-        });
     }
 
     initWebSocket() {
@@ -76,10 +61,14 @@ class NewsStream {
                         thumb: thumbLink ? this.getThumbUrl(thumbLink, json.did) : null
                     };
                     
-                    // Skip Tenor GIFs if excludeTenor is enabled
-                    if (this.excludeTenor && content.url.includes('tenor.com')) {
+                    // Only process Backloggd review URLs
+                    const backloggdPattern = /^https?:\/\/backloggd\.com\/u\/([^/]+)\/review\/(\d+)\/?$/;
+                    if (!backloggdPattern.test(content.url)) {
                         return;
                     }
+                    
+                    // Extract game name from the title or description
+                    const gameName = this.extractGameName(content.title, content.description);
                     
                     // Add to marquee if there's a thumbnail
                     if (content.thumb) {
@@ -95,12 +84,14 @@ class NewsStream {
                         }
                     }
                     
-                    // Track shared links with unique users
-                    if (content.url !== '#') {
-                        if (!this.sharedLinks.has(content.url)) {
-                            this.sharedLinks.set(content.url, {
-                                title: content.title,
-                                description: content.description,
+                    // Track game reviews with unique users
+                    if (gameName && content.url !== '#') {
+                        if (!this.gameReviews.has(gameName)) {
+                            this.gameReviews.set(gameName, {
+                                gameName: gameName,
+                                sampleTitle: content.title,
+                                sampleDescription: content.description,
+                                sampleUrl: content.url,
                                 thumbLink: thumbLink,
                                 did: json.did,
                                 count: 1,
@@ -108,12 +99,12 @@ class NewsStream {
                                 uniqueUsers: new Set([json.did]) // Track unique users
                             });
                         } else {
-                            const data = this.sharedLinks.get(content.url);
-                            // Only increment count if this user hasn't shared before
+                            const data = this.gameReviews.get(gameName);
+                            // Only increment count if this user hasn't reviewed before
                             if (!data.uniqueUsers.has(json.did)) {
                                 data.count++;
                                 data.uniqueUsers.add(json.did);
-                                this.sharedLinks.set(content.url, data);
+                                this.gameReviews.set(gameName, data);
                             }
                         }
                         this.updateTopSharedLinks();
@@ -224,24 +215,63 @@ class NewsStream {
         }
     }
 
-    // Add this method to track the current top links
+    // Extract game name from title or description
+    extractGameName(title, description) {
+        // Try to extract game name from title first
+        let gameName = null;
+        
+        // Pattern 1: Backloggd format: "Username's review of Game Name | Backloggd"
+        const backloggdPattern = title.match(/.*?'s review of (.+?)\s*\|\s*Backloggd/i);
+        if (backloggdPattern) {
+            gameName = backloggdPattern[1].trim();
+        }
+        
+        // Pattern 2: "Game Name - Review" or "Game Name - something"
+        if (!gameName) {
+            const dashPattern = title.match(/^(.+?)\s*-\s*(Review|review)/);
+            if (dashPattern) {
+                gameName = dashPattern[1].trim();
+            }
+        }
+        
+        // Pattern 3: "Review: Game Name" or "Review of Game Name"
+        if (!gameName) {
+            const reviewPattern = title.match(/^Review[:\s]+(.*)/i);
+            if (reviewPattern) {
+                gameName = reviewPattern[1].trim();
+            }
+        }
+        
+        // Pattern 4: Remove common review keywords from end
+        if (!gameName) {
+            gameName = title.replace(/\s+(Review|review|Rating|rating)$/i, '').trim();
+        }
+        
+        // Pattern 5: Remove "| Backloggd" from end if present
+        if (!gameName) {
+            gameName = title.replace(/\s*\|\s*Backloggd$/i, '').trim();
+        }
+        
+        // Fallback: use the full title if no pattern matches
+        if (!gameName || gameName.length < 2) {
+            gameName = title.trim();
+        }
+        
+        return gameName;
+    }
+
+    // Add this method to track the current top games
     getTopLinks() {
-        return [...this.sharedLinks.entries()]
-            .filter(([url, data]) => {
-                if (this.excludeTenor && url.includes('tenor.com')) {
-                    return false;
-                }
-                return true;
-            })
+        return [...this.gameReviews.entries()]
             .sort((a, b) => b[1].count - a[1].count)
             .slice(0, 10)
-            .map(([url, data]) => ({
-                url,
-                title: data.title,
-                description: data.description,
+            .map(([gameName, data]) => ({
+                url: data.sampleUrl,
+                title: data.gameName,
+                description: `${data.count} review${data.count !== 1 ? 's' : ''}`,
                 thumb: data.thumbLink ? this.getThumbUrl(data.thumbLink, data.did) : null,
                 count: data.count,
-                hostname: new URL(url).hostname
+                hostname: 'backloggd.com'
             }));
     }
 
@@ -272,7 +302,7 @@ class NewsStream {
                     // Update only the dynamic content (count)
                     const statsElement = linkElement.querySelector('.shared-link-stats');
                     if (statsElement) {
-                        statsElement.textContent = `Shared ${count} time${count !== 1 ? 's' : ''} • ${hostname}`;
+                        statsElement.textContent = `${count} review${count !== 1 ? 's' : ''} • ${hostname}`;
                     }
                 } else {
                     // Create new element if it doesn't exist
@@ -297,7 +327,7 @@ class NewsStream {
                             <div class="shared-link-title">${title}</div>
                             ${description ? `<div class="shared-link-description">${description}</div>` : ''}
                             <div class="shared-link-stats">
-                                Shared ${count} time${count !== 1 ? 's' : ''} • 
+                                ${count} review${count !== 1 ? 's' : ''} • 
                                 ${hostname}
                             </div>
                         </div>
@@ -434,7 +464,7 @@ class NewsStream {
         let timeText;
         
         if (minutesSinceStart < 1) {
-            timeText = '(gathering first stories... please wait)<span class="loading-spinner"></span>';
+            timeText = '(gathering reviews... please wait)<span class="loading-spinner"></span>';
         } else {
             // Remove spinner when switching to time display
             timeText = `(last ${minutesSinceStart} minute${minutesSinceStart > 1 ? 's' : ''})`;

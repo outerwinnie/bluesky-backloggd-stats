@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="Breaking news and most shared stories on Bluesky">
-    <meta property="og:title" content="Bluesky News Feed" />
-    <meta property="og:description" content="Breaking news and most shared stories on Bluesky" />
+    <meta name="description" content="Backloggd game reviews shared on Bluesky">
+    <meta property="og:title" content="Backloggd Reviews on Bluesky" />
+    <meta property="og:description" content="Game reviews from Backloggd shared on Bluesky" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://lantto.github.io/bluesky-news/" />
     <meta property="og:image" content="https://lantto.github.io/bluesky-news/og.png" />
@@ -13,7 +13,7 @@
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="theme-color" content="#000000">
-    <title>Bluesky News Feed</title>
+    <title>Backloggd Reviews on Bluesky</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600&display=swap">
     <style>
@@ -93,6 +93,7 @@
             overflow: hidden;
             display: -webkit-box;
             -webkit-line-clamp: 2;
+            line-clamp: 2;
             -webkit-box-orient: vertical;
         }
 
@@ -106,8 +107,6 @@
             font-family: 'Bebas Neue', sans-serif;
             font-size: 32px;
             margin-bottom: 20px;
-            position: relative;
-            padding-right: 150px;
         }
 
         .shared-links {
@@ -141,6 +140,56 @@
         .shared-link-stats {
             color: #888;
             font-size: 14px;
+        }
+
+        .shared-link-description {
+            color: #aaa;
+            font-size: 14px;
+            margin: 5px 0;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .shared-link-thumb {
+            flex-shrink: 0;
+            width: 120px;
+            height: 80px;
+            border-radius: 4px;
+            overflow: hidden;
+            background: #1a1a1a;
+            position: relative;
+        }
+
+        .shared-link-thumb.no-image::before {
+            content: '📰';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            opacity: 0.3;
+        }
+
+        .shared-link-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .shared-link-thumb img.loaded {
+            opacity: 1;
+        }
+
+        .shared-link-content {
+            flex: 1;
+            min-width: 0;
         }
 
         .news-item {
@@ -188,7 +237,6 @@
             letter-spacing: 1px;
         }
 
-        /* Red line animation */
         .news-container::after {
             content: '';
             position: absolute;
@@ -198,12 +246,11 @@
             height: 4px;
             background: #ff3b3b;
             transform-origin: left;
-            transform: scaleX(0); /* Start at 0 width */
+            transform: scaleX(0);
         }
 
-        /* Breaking news flash effect */
         .news-container::before {
-            content: 'BREAKING';
+            content: 'LATEST';
             position: absolute;
             left: 40px;
             top: 20px;
@@ -220,55 +267,6 @@
 
         @keyframes flash {
             50% { opacity: 0.5; }
-        }
-
-        .shared-link-description {
-            color: #aaa;
-            font-size: 14px;
-            margin: 5px 0;
-            line-height: 1.4;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .shared-link-thumb {
-            flex-shrink: 0;
-            width: 120px;
-            height: 80px;
-            border-radius: 4px;
-            overflow: hidden;
-            background: #1a1a1a; /* Dark placeholder background */
-            position: relative;
-        }
-
-        .shared-link-thumb.no-image::before {
-            content: '📰';
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 24px;
-            opacity: 0.3;
-        }
-
-        .shared-link-thumb img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .shared-link-thumb img.loaded {
-            opacity: 1;
-        }
-
-        .shared-link-content {
-            flex: 1;
-            min-width: 0; /* Ensures text truncation works */
         }
 
         .loading-spinner {
@@ -325,7 +323,7 @@
         }
 
         .reset-marquee {
-            display: none; /* Initially hidden */
+            display: none;
         }
 
         .marquee-controls {
@@ -336,25 +334,23 @@
             padding: 0;
         }
 
-        .tenor-filter {
-            float: right;
-            font-size: 14px;
-            color: #888;
-            font-family: 'Inter', sans-serif;
-            font-weight: normal;
+        .title-row {
             display: flex;
             align-items: center;
-            gap: 6px;
-            cursor: pointer;
-            position: absolute;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
+            gap: 10px;
+            margin-bottom: 20px;
         }
 
-        .tenor-filter input {
+        .title-text {
             margin: 0;
-            cursor: pointer;
+            padding: 0;
+            white-space: nowrap;
+        }
+
+        .time-indicator {
+            font-size: 16px;
+            color: #888;
+            white-space: nowrap;
         }
 
         @media (max-width: 768px) {
@@ -420,12 +416,15 @@
                 padding: 6px 12px;
             }
 
-            .marquee-track + .marquee-track {
-                transform: translateY(140px); /* Base height for mobile */
+            .title-row {
+                flex-wrap: wrap;
+                gap: 0;
             }
 
-            .tenor-filter {
-                font-size: 12px;
+            .time-indicator {
+                order: 3;
+                width: 100%;
+                margin-top: 0;
             }
         }
 
@@ -482,64 +481,10 @@
                 margin-top: 5px;
             }
         }
-
-        .time-indicator {
-            display: inline-block;
-        }
-
-        /* Add these new styles */
-        .title-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .title-text {
-            margin: 0;
-            padding: 0;
-            white-space: nowrap;
-        }
-
-        .time-indicator {
-            font-size: 16px;
-            color: #888;
-            white-space: nowrap;
-        }
-
-        .tenor-filter {
-            margin-left: auto;
-            font-size: 14px;
-            color: #888;
-            font-family: 'Inter', sans-serif;
-            font-weight: normal;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-        }
-
-        @media (max-width: 768px) {
-            .title-row {
-                flex-wrap: wrap;
-                gap: 0;
-            }
-
-            .time-indicator {
-                order: 3;
-                width: 100%;
-                margin-top: 0;
-            }
-
-            .tenor-filter {
-                font-size: 12px;
-                top: 14px;
-            }
-        }
     </style>
 </head>
 <body>
-    <a href="https://bsky.app/profile/lantto.bsky.social" target="_blank" class="follow-button">Follow me @ Bsky</a>
+    <a href="https://bsky.app/profile/outerwinnie.es" target="_blank" class="follow-button">Follow me @ Bsky</a>
     <div class="news-container"></div>
     <div class="marquee-container">
         <div class="marquee-track">
@@ -553,14 +498,10 @@
     <div class="top-shared">
         <div class="top-shared-title">
             <div class="title-row">
-                <div class="title-text">Most Shared Stories</div>
-                <span class="time-indicator" style="font-size: 16px; color: #888; font-family: 'Inter', sans-serif; font-weight: normal;">
-                    (gathering first stories... please wait)<span class="loading-spinner"></span>
+                <div class="title-text">Most Shared Game Reviews</div>
+                <span class="time-indicator">
+                    (gathering first reviews... please wait)<span class="loading-spinner"></span>
                 </span>
-                <label class="tenor-filter">
-                    <input type="checkbox" id="excludeTenor"> 
-                    Exclude Tenor GIFs
-                </label>
             </div>
         </div>
         <div class="shared-links"></div>
